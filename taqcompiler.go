@@ -27,8 +27,22 @@ const progLen = 256
 
 var (
 	errVariableNameAlreadyDeclared = errors.New("This variable name has already been declared before")
+	errLabelAlreadyDefined         = errors.New("This label has already been used")
 	errExtraArguments              = errors.New("Instruction has more arguments than it should")
+	errNoProgramDefnition          = errors.New("The program definition wasn't found")
 )
+
+var codeOps = map[string]string{
+	"LOAD":  "00000010",
+	"ADD":   "00000011",
+	"STORE": "00000001",
+	"JUMP":  "00000000",
+	"SUB":   "00000110",
+	"AND":   "00000100",
+	"JZ":    "00000101",
+	"NOP":   "00000111",
+	"HALT":  "00001000",
+}
 
 type program struct {
 	variables    map[string]string
@@ -76,12 +90,13 @@ func (c *Compiler) Compile() {
 	}
 	// start with the variables
 	prog.loadVariables()
+	prog.loadInstructions()
 }
 
 func (prog *program) loadVariables() {
 	// Load all variables
 	for k, v := range prog.c.inputProgram {
-		if v == "endvar" {
+		if strings.TrimSpace(v) == "endvar" {
 			break
 		}
 		v = strings.Replace(strings.TrimSpace(v), " ", "", -1)
