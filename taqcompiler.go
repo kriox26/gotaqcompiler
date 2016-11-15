@@ -1,6 +1,14 @@
 package taqcompiler
 
-import "mime/multipart"
+import (
+	"bufio"
+	"errors"
+	"fmt"
+	"log"
+	"mime/multipart"
+	"strconv"
+	"strings"
+)
 
 // Compiler represents the compiler that compiles a TAQ program
 type Compiler struct {
@@ -15,10 +23,26 @@ type Compiler struct {
 	OKCompilation bool
 }
 
+const progLen = 256
+
+var (
+	errVariableNameAlreadyDeclared = errors.New("This variable name has already been declared before")
+	errExtraArguments              = errors.New("Instruction has more arguments than it should")
+)
+
+type program struct {
+	variables    map[string]string
+	instructions []string
+	c            *Compiler
+}
+
 // NewCompilerFromString creates a compiler for the program given as a string
 func NewCompilerFromString(inProgram string) *Compiler {
 	var inpProgram []string
-	// Build the inputProgram array with all instructions and vars right here
+	// remove all tabs chars
+	inProgram = strings.Replace(inProgram, "\t", "", -1)
+	inpProgram = strings.Split(inProgram, "\n")
+	// build the inputProgram array with all instructions and vars right here
 	return &Compiler{
 		inputProgram: inpProgram,
 	}
