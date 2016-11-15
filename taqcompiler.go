@@ -106,7 +106,6 @@ func (prog *program) loadVariables() {
 				prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errVariableNameAlreadyDeclared.Error(), k+1))
 			} else {
 				prog.variables[line[0]] = line[1]
-				fmt.Printf("Line %v has value %s\n", line[0], line[1])
 				aux, err := strconv.Atoi(line[1])
 				if err != nil {
 					log.Fatalf(err.Error())
