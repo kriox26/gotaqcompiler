@@ -118,7 +118,74 @@ func (prog *program) loadVariables() {
 	}
 }
 
+func (prog *program) loadInstructions() {
+	var jumps []int
+	code := prog.c.inputProgram
+	p, err := indexOfInst(code, "programa:")
+	start := p + 1
+	if err != nil {
+		prog.c.CompilationErrors = append(prog.c.CompilationErrors, err.Error())
+		return
+	}
+	for i := start; i < len(code); i++ {
+		if code[i] == "end" {
+			break
+		}
+		inst := strings.Split(code[i], " ")
+		if len(inst) > 2 {
+			// it has a label, so we need to store the memory address
+			if _, ok := codeOps[strings.Replace(inst[0], ":", "", -1)]; ok {
+				prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errLabelAlreadyDefined.Error(), i+1))
+			} else {
+				codeOps[strings.Replace(inst[0], ":", "", -1)] = strings.Replace(fmt.Sprintf("%08v", strconv.FormatInt(int64(i-start), 2)), " ", "", -1)
+			}
+		} else if len(inst) == 1 {
+			// HALT
+			prog.c.OutputProgram[i-start] = fmt.Sprintf("%016s", codeOps[inst[0]])
+			continue
+		}
+		codeOp := inst[len(inst)-2]
+		if strings.ToLower(codeOp) == "jump" || strings.ToLower(codeOp) == "jz" {
+			// add to jumps
+			jumps = append(jumps, i)
+		} else {
+			op := inst[len(inst)-1]
+			ind := prog.indexOfOp(op)
+			prog.c.OutputProgram[i-start] = codeOps[codeOp] + fmt.Sprintf("%08s", strings.Replace(strconv.FormatInt(int64(255-ind), 2), " ", "0", -1))
+		}
+	}
+
+	for _, k := range jumps {
+		inst := strings.Split(prog.c.inputProgram[k], " ")
+		prog.c.OutputProgram[k-start] = fmt.Sprintf("%s%s", codeOps[inst[len(inst)-2]], codeOps[strings.TrimSpace(inst[len(inst)-1])])
+	}
+
+}
+
+func (prog *program) indexOfOp(op string) int {
+	i := 0
+	for k := range prog.variables {
+		if strings.TrimSpace(op) == strings.TrimSpace(k) {
+			return i
+		}
+		i++
+	}
+	return -1
+}
+
+func indexOfInst(sl []string, inst string) (int, error) {
+	for k, v := range sl {
+		if strings.TrimSpace(v) == inst {
+			return k, nil
+		}
+	}
+	return -1, errNoProgramDefnition
+}
+
 func (c *Compiler) initCompiler() {
 	// Load all "0000000000000000" in compiler.OutputProgram()
 	c.OutputProgram = make([]string, 256, 256)
+	for k := range c.OutputProgram {
+		c.OutputProgram[k] = "0000000000000000"
+	}
 }
