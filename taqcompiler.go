@@ -59,7 +59,8 @@ func NewCompilerFromString(inProgram string) *Compiler {
 	inpProgram = strings.Split(inProgram, "\n")
 	// build the inputProgram array with all instructions and vars right here
 	return &Compiler{
-		inputProgram: inpProgram,
+		inputProgram:  inpProgram,
+		OutputProgram: initOutputProgram(),
 	}
 }
 
@@ -74,7 +75,8 @@ func NewCompilerFromFile(inProgramFile multipart.File) *Compiler {
 		inpProgram = append(inpProgram, line)
 	}
 	return &Compiler{
-		inputProgram: inpProgram,
+		inputProgram:  inpProgram,
+		OutputProgram: initOutputProgram(),
 	}
 }
 
@@ -83,7 +85,6 @@ func NewCompilerFromFile(inProgramFile multipart.File) *Compiler {
 // sets OKCompilation to false if there were any errors, otherwise
 // store the program in Compiler.OutputProgram and set OKCompilation to true.
 func (c *Compiler) Compile() {
-	c.initCompiler()
 	prog := program{
 		variables:    make(map[string]string),
 		instructions: make([]string, 20, 50),
@@ -191,10 +192,11 @@ func indexOfInst(sl []string, inst string) (int, error) {
 	return -1, errNoProgramDefnition
 }
 
-func (c *Compiler) initCompiler() {
+func initOutputProgram() []string {
 	// Load all "0000000000000000" in compiler.OutputProgram()
-	c.OutputProgram = make([]string, 256, 256)
-	for k := range c.OutputProgram {
-		c.OutputProgram[k] = "0000000000000000"
+	outputProgram := make([]string, 256, 256)
+	for k := range outputProgram {
+		outputProgram[k] = "0000000000000000"
 	}
+	return outputProgram
 }
