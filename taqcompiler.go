@@ -30,6 +30,7 @@ var (
 	errLabelAlreadyDefined         = errors.New("This label has already been used")
 	errExtraArguments              = errors.New("Instruction has more arguments than it should")
 	errNoProgramDefnition          = errors.New("The program definition wasn't found")
+	errNoVarDefinition             = errors.New("The var definition wasn't found")
 )
 
 var codeOps = map[string]string{
@@ -91,10 +92,19 @@ func (c *Compiler) Compile() {
 	// start with the variables
 	prog.loadVariables()
 	prog.loadInstructions()
+	if len(prog.c.CompilationErrors) == 0 {
+		prog.c.OKCompilation = true
+	} else {
+		prog.c.OKCompilation = false
+	}
 }
 
 func (prog *program) loadVariables() {
 	// Load all variables
+	if strings.TrimSpace(prog.c.inputProgram[0]) != "var" {
+		prog.c.CompilationErrors = append(prog.c.CompilationErrors, errNoVarDefinition.Error())
+		return
+	}
 	for k, v := range prog.c.inputProgram {
 		if strings.TrimSpace(v) == "endvar" {
 			break
