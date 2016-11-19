@@ -59,7 +59,7 @@ func TestCompile(t *testing.T) {
 	}
 	comp = NewCompilerFromFile(f)
 	comp.Compile()
-	if comp.CompilationErrors[0] != errNoVarDefinition.Error() {
+	if !strings.HasPrefix(comp.CompilationErrors[0], errNoVarDefinition.Error()) {
 		t.Errorf("The error should be errNoVarDefinition. But instead: %s\n", comp.CompilationErrors[0])
 	}
 
@@ -70,7 +70,7 @@ func TestCompile(t *testing.T) {
 	}
 	comp = NewCompilerFromFile(f)
 	comp.Compile()
-	if comp.CompilationErrors[0] != errNoProgramDefnition.Error() {
+	if !strings.HasPrefix(comp.CompilationErrors[0], errNoProgramDefnition.Error()) {
 		t.Errorf("The error should be errNoProgramDefnition. But instead: %s\n", comp.CompilationErrors[0])
 	}
 
