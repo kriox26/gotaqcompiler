@@ -1,0 +1,13 @@
+var:
+N1: 3
+N2: 2
+N2: 4
+N3: 0
+N3: 5
+endvar
+programa:
+LOAD N1
+ADD N2
+STORE N3
+HALT
+end

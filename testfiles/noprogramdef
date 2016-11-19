@@ -1,0 +1,10 @@
+var:
+N1: 3
+N2: 2
+N3: 0
+endvar
+LOAD N1
+ADD N2
+STORE N3
+HALT
+end
