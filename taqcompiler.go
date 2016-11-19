@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"log"
-	"mime/multipart"
 	"strconv"
 	"strings"
 )
@@ -65,7 +65,7 @@ func NewCompilerFromString(inProgram string) *Compiler {
 }
 
 // NewCompilerFromFile creates a compiler for the program given as a file
-func NewCompilerFromFile(inProgramFile multipart.File) *Compiler {
+func NewCompilerFromFile(inProgramFile io.Reader) *Compiler {
 	var inpProgram []string
 	scn := bufio.NewScanner(inProgramFile)
 	for scn.Scan() {
@@ -102,7 +102,7 @@ func (c *Compiler) Compile() {
 
 func (prog *program) loadVariables() {
 	// Load all variables
-	if strings.TrimSpace(prog.c.inputProgram[0]) != "var" {
+	if strings.TrimSpace(prog.c.inputProgram[0]) != "var:" {
 		prog.c.CompilationErrors = append(prog.c.CompilationErrors, errNoVarDefinition.Error())
 		return
 	}
