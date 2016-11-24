@@ -106,18 +106,21 @@ func (prog *program) loadVariables() {
 		prog.c.CompilationErrors = append(prog.c.CompilationErrors, errNoVarDefinition.Error())
 		return
 	}
+	var line []string
+	var id, value string
 	for k, v := range prog.c.inputProgram {
 		if strings.TrimSpace(v) == "endvar" {
 			break
 		}
 		v = strings.Replace(strings.TrimSpace(v), " ", "", -1)
-		line := strings.Split(v, ":") // line[0] holds id, and line[1] holds the value
-		if line[0] != "var" {
-			if _, ok := prog.variables[line[0]]; ok {
+		line = strings.Split(v, ":") // line[0] holds id, and line[1] holds the value
+		id, value = line[0], line[1]
+		if id != "var" {
+			if _, ok := prog.variables[id]; ok {
 				prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errVariableNameAlreadyDeclared.Error(), k+1))
 			} else {
-				prog.variables[line[0]] = line[1]
-				aux, err := strconv.Atoi(line[1])
+				prog.variables[id] = value
+				aux, err := strconv.Atoi(value)
 				if err != nil {
 					log.Fatalf(err.Error())
 				}
@@ -169,7 +172,6 @@ func (prog *program) loadInstructions() {
 		inst := strings.Split(prog.c.inputProgram[k], " ")
 		prog.c.OutputProgram[k-start] = fmt.Sprintf("%s%s", codeOps[inst[len(inst)-2]], codeOps[strings.TrimSpace(inst[len(inst)-1])])
 	}
-
 }
 
 func (prog *program) indexOfOp(op string) int {
@@ -192,11 +194,13 @@ func indexOfInst(sl []string, inst string) (int, error) {
 	return -1, errNoProgramDefnition
 }
 
+var s = "0000000000000000"
+
 func initOutputProgram() []string {
 	// Load all "0000000000000000" in compiler.OutputProgram()
 	outputProgram := make([]string, 256, 256)
 	for k := range outputProgram {
-		outputProgram[k] = "0000000000000000"
+		outputProgram[k] = s
 	}
 	return outputProgram
 }
