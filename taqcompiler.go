@@ -100,6 +100,8 @@ func (c *Compiler) Compile() {
 	}
 }
 
+// testing out gerrit
+
 func (prog *program) loadVariables() {
 	// Load all variables
 	if strings.TrimSpace(prog.c.inputProgram[0]) != "var:" {
