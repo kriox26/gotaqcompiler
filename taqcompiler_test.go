@@ -45,6 +45,14 @@ func TestNewCompilerFromFile(t *testing.T) {
 	}
 }
 
+func BenchmarkCompile(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		comp := NewCompilerFromString(correctProgram)
+		comp.Compile()
+	}
+}
+
 func TestCompile(t *testing.T) {
 	comp := NewCompilerFromString(correctProgram)
 	comp.Compile()
