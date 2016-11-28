@@ -106,29 +106,32 @@ func (prog *program) loadVariables() {
 		prog.c.CompilationErrors = append(prog.c.CompilationErrors, errNoVarDefinition.Error())
 		return
 	}
-	var line []string
 	var id, value string
 	for k, v := range prog.c.inputProgram {
 		if strings.TrimSpace(v) == "endvar" {
 			break
 		}
-		v = strings.Replace(strings.TrimSpace(v), " ", "", -1)
-		line = strings.Split(v, ":") // line[0] holds id, and line[1] holds the value
-		id, value = line[0], line[1]
-		if id != "var" {
-			if _, ok := prog.variables[id]; ok {
-				prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errVariableNameAlreadyDeclared.Error(), k+1))
-			} else {
-				prog.variables[id] = value
-				aux, err := strconv.Atoi(value)
-				if err != nil {
-					log.Fatalf(err.Error())
-				}
-				bin := strconv.FormatInt(int64(aux), 2)
-				prog.c.OutputProgram[progLen-len(prog.variables)] = fmt.Sprintf("%016s", bin)
-			}
+		id, value = getValueID(v)
+		if id == "var" {
+			continue
 		}
+		if _, ok := prog.variables[id]; ok {
+			prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errVariableNameAlreadyDeclared.Error(), k+1))
+			continue
+		}
+		prog.variables[id] = value
+		aux, err := strconv.Atoi(value)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		bin := strconv.FormatInt(int64(aux), 2)
+		prog.c.OutputProgram[progLen-len(prog.variables)] = fmt.Sprintf("%016s", bin)
 	}
+}
+func getValueID(v string) (string, string) {
+	v = strings.Replace(strings.TrimSpace(v), " ", "", -1)
+	l := strings.Split(v, ":") // line[0] holds id, and line[1] holds the value
+	return l[0], l[1]
 }
 
 func (prog *program) loadInstructions() {
@@ -149,10 +152,11 @@ func (prog *program) loadInstructions() {
 			// it has a label, so we need to store the memory address
 			if _, ok := codeOps[strings.Replace(inst[0], ":", "", -1)]; ok {
 				prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errLabelAlreadyDefined.Error(), i+1))
-			} else {
-				codeOps[strings.Replace(inst[0], ":", "", -1)] = strings.Replace(fmt.Sprintf("%08v", strconv.FormatInt(int64(i-start), 2)), " ", "", -1)
+				continue
 			}
-		} else if len(inst) == 1 {
+			codeOps[strings.Replace(inst[0], ":", "", -1)] = strings.Replace(fmt.Sprintf("%08v", strconv.FormatInt(int64(i-start), 2)), " ", "", -1)
+		}
+		if len(inst) == 1 {
 			// HALT
 			prog.c.OutputProgram[i-start] = fmt.Sprintf("%016s", codeOps[inst[0]])
 			continue
@@ -161,11 +165,11 @@ func (prog *program) loadInstructions() {
 		if strings.ToLower(codeOp) == "jump" || strings.ToLower(codeOp) == "jz" {
 			// add to jumps
 			jumps = append(jumps, i)
-		} else {
-			op := inst[len(inst)-1]
-			ind := prog.indexOfOp(op)
-			prog.c.OutputProgram[i-start] = codeOps[codeOp] + fmt.Sprintf("%08s", strings.Replace(strconv.FormatInt(int64(255-ind), 2), " ", "0", -1))
+			continue
 		}
+		op := inst[len(inst)-1]
+		ind := prog.indexOfOp(op)
+		prog.c.OutputProgram[i-start] = codeOps[codeOp] + fmt.Sprintf("%08s", strings.Replace(strconv.FormatInt(int64(255-ind), 2), " ", "0", -1))
 	}
 
 	for _, k := range jumps {
