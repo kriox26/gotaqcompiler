@@ -46,9 +46,8 @@ var codeOps = map[string]string{
 }
 
 type program struct {
-	variables    map[string]string
-	instructions []string
-	c            *Compiler
+	variables []string
+	c         *Compiler
 }
 
 // NewCompilerFromString creates a compiler for the program given as a string
@@ -86,9 +85,8 @@ func NewCompilerFromFile(inProgramFile io.Reader) *Compiler {
 // store the program in Compiler.OutputProgram and set OKCompilation to true.
 func (c *Compiler) Compile() {
 	prog := program{
-		variables:    make(map[string]string),
-		instructions: make([]string, 20, 50),
-		c:            c,
+		variables: []string{},
+		c:         c,
 	}
 	// start with the variables
 	prog.loadVariables()
@@ -115,11 +113,11 @@ func (prog *program) loadVariables() {
 		if id == "var" {
 			continue
 		}
-		if _, ok := prog.variables[id]; ok {
+		if ok := prog.findVar(id); ok {
 			prog.c.CompilationErrors = append(prog.c.CompilationErrors, fmt.Sprintf("%s, on line: %v", errVariableNameAlreadyDeclared.Error(), k+1))
 			continue
 		}
-		prog.variables[id] = value
+		prog.variables = append(prog.variables, id)
 		aux, err := strconv.Atoi(value)
 		if err != nil {
 			log.Fatalf(err.Error())
@@ -128,6 +126,16 @@ func (prog *program) loadVariables() {
 		prog.c.OutputProgram[progLen-len(prog.variables)] = fmt.Sprintf("%016s", bin)
 	}
 }
+
+func (prog *program) findVar(id string) bool {
+	for _, v := range prog.variables {
+		if v == id {
+			return true
+		}
+	}
+	return false
+}
+
 func getValueID(v string) (string, string) {
 	v = strings.Replace(strings.TrimSpace(v), " ", "", -1)
 	l := strings.Split(v, ":") // line[0] holds id, and line[1] holds the value
@@ -180,8 +188,8 @@ func (prog *program) loadInstructions() {
 
 func (prog *program) indexOfOp(op string) int {
 	i := 0
-	for k := range prog.variables {
-		if strings.TrimSpace(op) == strings.TrimSpace(k) {
+	for _, v := range prog.variables {
+		if strings.TrimSpace(op) == strings.TrimSpace(v) {
 			return i
 		}
 		i++
